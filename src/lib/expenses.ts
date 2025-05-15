@@ -18,7 +18,7 @@ export interface Expense {
     id: string;
     name: string;
     email: string;
-    role: string;
+    role: "admin" | "employee" | "manager";
     avatar?: string;
     department: string;
   };
@@ -26,7 +26,7 @@ export interface Expense {
     id: string;
     name: string;
     email: string;
-    role: string;
+    role: "admin" | "employee" | "manager";
     avatar?: string;
     department: string;
   };
@@ -44,7 +44,15 @@ export const getExpenses = (): Expense[] => {
       ...expense,
       date: new Date(expense.date),
       submittedAt: expense.submittedAt ? new Date(expense.submittedAt) : undefined,
-      approvedAt: expense.approvedAt ? new Date(expense.approvedAt) : undefined
+      approvedAt: expense.approvedAt ? new Date(expense.approvedAt) : undefined,
+      submittedBy: {
+        ...expense.submittedBy,
+        role: expense.submittedBy.role.toLowerCase() as "admin" | "employee" | "manager"
+      },
+      approvedBy: expense.approvedBy ? {
+        ...expense.approvedBy,
+        role: expense.approvedBy.role.toLowerCase() as "admin" | "employee" | "manager"
+      } : undefined
     }));
   }
   return [];
@@ -75,7 +83,7 @@ export const addExpense = (expenseData: {
     id: currentUser.id.toString(),
     name: currentUser.username,
     email: currentUser.email,
-    role: currentUser.role.toLowerCase(),
+    role: currentUser.role.toLowerCase() as "admin" | "employee" | "manager",
     department: currentUser.department
   };
   
@@ -105,7 +113,7 @@ export const updateExpenseStatus = (
     id: string;
     name: string;
     email: string;
-    role: string;
+    role: "admin" | "employee" | "manager";
     department: string;
   }
 ): Expense | null => {

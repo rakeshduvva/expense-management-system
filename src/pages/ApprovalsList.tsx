@@ -46,7 +46,11 @@ const ApprovalsList = () => {
                 submittedBy: {
                   ...expense.submittedBy,
                   role: expense.submittedBy.role.toLowerCase() as "admin" | "employee" | "manager"
-                }
+                },
+                approvedBy: expense.approvedBy ? {
+                  ...expense.approvedBy,
+                  role: expense.approvedBy.role.toLowerCase() as "admin" | "employee" | "manager"
+                } : undefined
               }}
               onStatusChange={handleStatusChange}
             />
