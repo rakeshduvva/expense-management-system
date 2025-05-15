@@ -52,7 +52,8 @@ export function AppSidebar() {
             <span className="text-lg font-semibold text-sidebar-foreground">ExpenseHub</span>
           </div>
         )}
-        <SidebarTrigger asChild>
+        {/* Fixed: Wrapping SidebarTrigger correctly so it has only one child */}
+        <SidebarTrigger>
           <Button variant="ghost" size="icon" className="text-sidebar-foreground">
             <Menu className="h-5 w-5" />
           </Button>
