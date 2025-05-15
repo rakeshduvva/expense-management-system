@@ -13,8 +13,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
-  value?: DateRange;
+interface DateRangePickerProps {
+  className?: string;
+  value?: DateRange | undefined;
   onChange?: (date: DateRange | undefined) => void;
 }
 
@@ -71,6 +72,7 @@ export function DateRangePicker({
             selected={date}
             onSelect={handleDateChange}
             numberOfMonths={2}
+            className="pointer-events-auto"
           />
         </PopoverContent>
       </Popover>

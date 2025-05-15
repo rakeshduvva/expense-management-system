@@ -24,6 +24,7 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Download, FileSpreadsheet, FileText } from "lucide-react";
+import { DateRange } from "react-day-picker";
 
 const reportFormSchema = z.object({
   reportType: z.string({
@@ -31,7 +32,7 @@ const reportFormSchema = z.object({
   }),
   dateRange: z.object({
     from: z.date(),
-    to: z.date(),
+    to: z.date().optional(),
   }).optional(),
   format: z.string({
     required_error: "Please select a format",
@@ -152,7 +153,7 @@ const DownloadReport = () => {
                 <FormItem className="flex flex-col">
                   <FormLabel>Date Range</FormLabel>
                   <DateRangePicker
-                    value={field.value}
+                    value={field.value as DateRange}
                     onChange={field.onChange}
                   />
                   <FormDescription>
