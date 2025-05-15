@@ -70,12 +70,12 @@ export const addExpense = (expenseData: {
 
   const expenses = getExpenses();
   
-  // Convert current user to the submittedBy format
+  // Convert current user to the submittedBy format with lowercase role
   const submittedBy = {
     id: currentUser.id.toString(),
     name: currentUser.username,
     email: currentUser.email,
-    role: currentUser.role.toLowerCase() as "employee" | "manager" | "admin",
+    role: currentUser.role.toLowerCase(),
     department: currentUser.department
   };
   

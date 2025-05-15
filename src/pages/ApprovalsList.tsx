@@ -21,7 +21,7 @@ const ApprovalsList = () => {
       id: currentUser.id.toString(),
       name: currentUser.username,
       email: currentUser.email,
-      role: currentUser.role,
+      role: currentUser.role.toLowerCase() as "admin" | "employee" | "manager",
       department: currentUser.department
     };
     
@@ -41,7 +41,13 @@ const ApprovalsList = () => {
           {pendingExpenses.map(expense => (
             <ApprovalCard 
               key={expense.id} 
-              expense={expense} 
+              expense={{
+                ...expense,
+                submittedBy: {
+                  ...expense.submittedBy,
+                  role: expense.submittedBy.role.toLowerCase() as "admin" | "employee" | "manager"
+                }
+              }}
               onStatusChange={handleStatusChange}
             />
           ))}
