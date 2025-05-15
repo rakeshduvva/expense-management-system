@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -33,13 +33,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { UserPlus, Edit, Trash2 } from "lucide-react";
-
-// Demo users for the table
-const initialUsers = [
-  { id: 1, username: "admin", email: "admin@example.com", role: "Admin", department: "Management" },
-  { id: 2, username: "john.doe", email: "john@example.com", role: "Manager", department: "Finance" },
-  { id: 3, username: "jane.smith", email: "jane@example.com", role: "User", department: "Marketing" },
-];
+import { getUsers, addUser, updateUser, deleteUser, User as AuthUser } from "@/lib/auth";
 
 const userFormSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -52,9 +46,14 @@ const userFormSchema = z.object({
 type UserFormValues = z.infer<typeof userFormSchema>;
 
 const UserManagement = () => {
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState<AuthUser[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<(typeof users)[0] | null>(null);
+  const [editingUser, setEditingUser] = useState<AuthUser | null>(null);
+
+  // Load users from our auth store
+  useEffect(() => {
+    setUsers(getUsers());
+  }, []);
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -79,14 +78,14 @@ const UserManagement = () => {
     setIsDialogOpen(true);
   };
 
-  const handleEditUser = (user: typeof users[0]) => {
+  const handleEditUser = (user: AuthUser) => {
     setEditingUser(user);
     form.reset({
       username: user.username,
       email: user.email,
       role: user.role,
       department: user.department,
-      password: "",
+      password: "", // Don't show the password
     });
     setIsDialogOpen(true);
   };
@@ -101,41 +100,60 @@ const UserManagement = () => {
       return;
     }
     
-    setUsers(users.filter(user => user.id !== userId));
-    toast({
-      title: "User deleted",
-      description: "The user has been removed successfully.",
-    });
+    const success = deleteUser(userId);
+    if (success) {
+      setUsers(getUsers()); // Refresh the users list
+      toast({
+        title: "User deleted",
+        description: "The user has been removed successfully.",
+      });
+    }
   };
 
   const onSubmit = (data: UserFormValues) => {
     if (editingUser) {
       // Update existing user
-      setUsers(users.map(user => 
-        user.id === editingUser.id 
-          ? { ...user, username: data.username, email: data.email, role: data.role, department: data.department } 
-          : user
-      ));
-      toast({
-        title: "User updated",
-        description: `${data.username}'s information has been updated.`,
-      });
-    } else {
-      // Add new user
-      const newUser = {
-        id: users.length + 1,
+      const updatedUser = updateUser(editingUser.id, {
         username: data.username,
         email: data.email,
-        role: data.role,
+        role: data.role as AuthUser['role'],
         department: data.department,
-      };
-      setUsers([...users, newUser]);
+        ...(data.password && data.password.length > 0 ? { password: data.password } : {})
+      });
+      
+      if (updatedUser) {
+        toast({
+          title: "User updated",
+          description: `${data.username}'s information has been updated.`,
+        });
+      }
+    } else {
+      // Add new user
+      if (!data.password) {
+        toast({
+          title: "Password required",
+          description: "Please provide a password for the new user.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      addUser({
+        username: data.username,
+        email: data.email,
+        role: data.role as AuthUser['role'],
+        department: data.department,
+        password: data.password,
+      });
+      
       toast({
         title: "User added",
         description: `${data.username} has been added to the system.`,
       });
     }
     
+    // Refresh the users list and close the dialog
+    setUsers(getUsers());
     setIsDialogOpen(false);
     form.reset();
   };
@@ -189,21 +207,19 @@ const UserManagement = () => {
                     </FormItem>
                   )}
                 />
-                {!editingUser && (
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{editingUser ? "New Password (leave empty to keep current)" : "Password"}</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="role"

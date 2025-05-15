@@ -1,13 +1,35 @@
 
-import { useState } from "react";
-import { expensesByStatus } from "@/lib/data";
+import { useState, useEffect } from "react";
 import ApprovalCard from "@/components/approvals/ApprovalCard";
+import { getExpensesByStatus, updateExpenseStatus, Expense } from "@/lib/expenses";
+import { getCurrentUser } from "@/lib/auth";
 
 const ApprovalsList = () => {
-  const [pendingExpenses, setPendingExpenses] = useState(expensesByStatus.submitted);
+  const [pendingExpenses, setPendingExpenses] = useState<Expense[]>([]);
+  const currentUser = getCurrentUser();
+
+  // Load submitted expenses when the component mounts
+  useEffect(() => {
+    setPendingExpenses(getExpensesByStatus("submitted"));
+  }, []);
 
   const handleStatusChange = (id: string, status: "approved" | "rejected") => {
-    setPendingExpenses(pendingExpenses.filter(expense => expense.id !== id));
+    if (!currentUser) return;
+    
+    // Convert current user to the approver format
+    const approver = {
+      id: currentUser.id.toString(),
+      name: currentUser.username,
+      email: currentUser.email,
+      role: currentUser.role,
+      department: currentUser.department
+    };
+    
+    // Update the expense status
+    updateExpenseStatus(id, status, approver);
+    
+    // Update the UI by removing the expense from the list
+    setPendingExpenses(prev => prev.filter(expense => expense.id !== id));
   };
 
   return (

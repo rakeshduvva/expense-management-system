@@ -37,6 +37,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { categories } from "@/lib/data";
+import { addExpense } from "@/lib/expenses";
 
 const formSchema = z.object({
   date: z.date({
@@ -57,6 +58,7 @@ const formSchema = z.object({
   description: z.string().min(5, {
     message: "Description must be at least 5 characters.",
   }),
+  submissionType: z.enum(["draft", "submit"]),
 });
 
 interface ExpenseFormProps {
@@ -78,23 +80,46 @@ export function ExpenseForm({ expenseId }: ExpenseFormProps) {
       amount: undefined,
       currency: "USD",
       description: "",
+      submissionType: "submit",
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
 
-    // Simulate API call
+    // Convert form values to expense data
+    const expenseData = {
+      date: values.date,
+      merchant: values.merchant,
+      category: values.category,
+      amount: values.amount,
+      currency: values.currency,
+      description: values.description,
+      status: values.submissionType === "submit" ? "submitted" as const : "draft" as const,
+    };
+
+    // Add the expense using our store
+    const newExpense = addExpense(expenseData);
+    
     setTimeout(() => {
       setIsSubmitting(false);
-      toast({
-        title: `Expense ${isEditing ? "updated" : "created"} successfully`,
-        description: "Your expense has been saved.",
-      });
-      navigate("/expenses");
-    }, 1000);
-
-    console.log(values);
+      
+      if (newExpense) {
+        toast({
+          title: `Expense ${isEditing ? "updated" : "created"} successfully`,
+          description: values.submissionType === "submit" 
+            ? "Your expense has been submitted for approval." 
+            : "Your expense has been saved as draft.",
+        });
+        navigate("/expenses");
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save the expense. Please try again.",
+          variant: "destructive"
+        });
+      }
+    }, 500);
   }
 
   return (
@@ -266,17 +291,32 @@ export function ExpenseForm({ expenseId }: ExpenseFormProps) {
         </div>
         
         <div className="border-t pt-6 mt-6">
-          <Label className="text-base mb-4 block">Submission Type</Label>
-          <RadioGroup defaultValue="submit" className="flex flex-col gap-3">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="draft" id="draft" />
-              <Label htmlFor="draft">Save as Draft</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="submit" id="submit" />
-              <Label htmlFor="submit">Submit for Approval</Label>
-            </div>
-          </RadioGroup>
+          <FormField
+            control={form.control}
+            name="submissionType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base mb-4 block">Submission Type</FormLabel>
+                <FormControl>
+                  <RadioGroup 
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col gap-3"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="draft" id="draft" />
+                      <Label htmlFor="draft">Save as Draft</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="submit" id="submit" />
+                      <Label htmlFor="submit">Submit for Approval</Label>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <div className="flex justify-end space-x-4">

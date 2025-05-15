@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { addUser } from "@/lib/auth";
 
 const formSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -46,19 +47,33 @@ const Signup = () => {
   const onSubmit = (data: FormValues) => {
     setIsLoading(true);
     
-    // For now, just show success and redirect to login
     setTimeout(() => {
-      // In a real app, we would send this to an API
-      console.log("Registration data:", data);
+      try {
+        // Add new user with default "User" role
+        addUser({
+          username: data.username,
+          email: data.email,
+          password: data.password,
+          role: "User",
+          department: "General" // Default department
+        });
+        
+        toast({
+          title: "Account created",
+          description: "You can now log in with your credentials.",
+        });
+        
+        navigate("/login");
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to create account. Please try again.",
+          variant: "destructive",
+        });
+      }
       
-      toast({
-        title: "Account created",
-        description: "You can now log in with your credentials.",
-      });
-      
-      navigate("/login");
       setIsLoading(false);
-    }, 1000);
+    }, 500);
   };
 
   return (

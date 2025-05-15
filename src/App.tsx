@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,39 +18,47 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import AuthGuard from "./components/auth/AuthGuard";
+import { initializeAuthStore } from "./lib/auth";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          
-          <Route element={<AuthGuard />}>
-            <Route element={
-              <SidebarProvider>
-                <AppLayout />
-              </SidebarProvider>
-            }>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/expenses" element={<ExpensesList />} />
-              <Route path="/expenses/new" element={<ExpenseForm />} />
-              <Route path="/expenses/:id" element={<ExpenseForm />} />
-              <Route path="/approvals" element={<ApprovalsList />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<NotFound />} />
+const App = () => {
+  // Initialize auth store on app load
+  useEffect(() => {
+    initializeAuthStore();
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            
+            <Route element={<AuthGuard />}>
+              <Route element={
+                <SidebarProvider>
+                  <AppLayout />
+                </SidebarProvider>
+              }>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/expenses" element={<ExpensesList />} />
+                <Route path="/expenses/new" element={<ExpenseForm />} />
+                <Route path="/expenses/:id" element={<ExpenseForm />} />
+                <Route path="/approvals" element={<ApprovalsList />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

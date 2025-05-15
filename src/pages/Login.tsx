@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { checkLogin, setCurrentUser } from "@/lib/auth";
 
 const formSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -39,19 +40,16 @@ const Login = () => {
   const onSubmit = (data: FormValues) => {
     setIsLoading(true);
     
-    // Simple authentication - check for admin/admin
     setTimeout(() => {
-      if (data.username === "admin" && data.password === "admin") {
+      const user = checkLogin(data.username, data.password);
+      
+      if (user) {
         // Store login state
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("currentUser", JSON.stringify({
-          username: data.username,
-          role: "Admin"
-        }));
+        setCurrentUser(user);
         
         toast({
           title: "Login successful",
-          description: "Welcome back, admin!",
+          description: `Welcome back, ${user.username}!`,
         });
         
         navigate("/");
@@ -63,7 +61,7 @@ const Login = () => {
         });
       }
       setIsLoading(false);
-    }, 1000);
+    }, 500);
   };
 
   return (
