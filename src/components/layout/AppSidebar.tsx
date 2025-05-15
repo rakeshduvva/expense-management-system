@@ -34,18 +34,19 @@ const navItems = [
 ];
 
 export function AppSidebar() {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
 
   const getNavStyles = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "hover:bg-sidebar-accent/50";
 
   return (
     <Sidebar
-      className={`${collapsed ? "w-20" : "w-64"} flex flex-col transition-all duration-300 ease-in-out shadow-lg`}
-      collapsible
+      className={`${isCollapsed ? "w-20" : "w-64"} flex flex-col transition-all duration-300 ease-in-out shadow-lg`}
+      collapsible="icon"
     >
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-        {!collapsed && (
+        {!isCollapsed && (
           <div className="flex items-center gap-2">
             <Briefcase className="h-6 w-6 text-sidebar-foreground" />
             <span className="text-lg font-semibold text-sidebar-foreground">ExpenseHub</span>
@@ -66,7 +67,7 @@ export function AppSidebar() {
                 <SidebarMenuButton asChild>
                   <NavLink to={item.path} end className={({ isActive }) => `flex items-center gap-2 p-2 rounded-md ${getNavStyles({ isActive })}`}>
                     <item.icon className="h-5 w-5" />
-                    {!collapsed && <span>{item.title}</span>}
+                    {!isCollapsed && <span>{item.title}</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -75,8 +76,8 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       
-      <div className={`p-4 border-t border-sidebar-border flex ${collapsed ? "justify-center" : "items-center gap-3"}`}>
-        {collapsed ? (
+      <div className={`p-4 border-t border-sidebar-border flex ${isCollapsed ? "justify-center" : "items-center gap-3"}`}>
+        {isCollapsed ? (
           <Avatar>
             <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
             <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
