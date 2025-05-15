@@ -14,6 +14,9 @@ import ApprovalsList from "./pages/ApprovalsList";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import AuthGuard from "./components/auth/AuthGuard";
 
 const queryClient = new QueryClient();
 
@@ -23,9 +26,16 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <SidebarProvider>
-          <Routes>
-            <Route element={<AppLayout />}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          
+          <Route element={<AuthGuard />}>
+            <Route element={
+              <SidebarProvider>
+                <AppLayout />
+              </SidebarProvider>
+            }>
               <Route path="/" element={<Dashboard />} />
               <Route path="/expenses" element={<ExpensesList />} />
               <Route path="/expenses/new" element={<ExpenseForm />} />
@@ -35,8 +45,8 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Route>
-          </Routes>
-        </SidebarProvider>
+          </Route>
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
