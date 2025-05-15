@@ -21,9 +21,10 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { currentUser } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useEffect, useState } from "react";
 
 const navItems = [
   { title: "Dashboard", icon: Briefcase, path: "/" },
@@ -36,9 +37,20 @@ const navItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+    }
+  }, []);
 
   const getNavStyles = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "hover:bg-sidebar-accent/50";
+
+  // If no user is found, we don't show anything
+  if (!currentUser) return null;
 
   return (
     <Sidebar
@@ -52,7 +64,6 @@ export function AppSidebar() {
             <span className="text-lg font-semibold text-sidebar-foreground">ExpenseHub</span>
           </div>
         )}
-        {/* Fixed: Wrapping SidebarTrigger correctly so it has only one child */}
         <SidebarTrigger>
           <Button variant="ghost" size="icon" className="text-sidebar-foreground">
             <Menu className="h-5 w-5" />
@@ -80,17 +91,15 @@ export function AppSidebar() {
       <div className={`p-4 border-t border-sidebar-border flex ${isCollapsed ? "justify-center" : "items-center gap-3"}`}>
         {isCollapsed ? (
           <Avatar>
-            <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
-            <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+            <AvatarFallback>{currentUser.username ? currentUser.username.charAt(0) : "U"}</AvatarFallback>
           </Avatar>
         ) : (
           <>
             <Avatar>
-              <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
-              <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+              <AvatarFallback>{currentUser.username ? currentUser.username.charAt(0) : "U"}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col text-sidebar-foreground">
-              <span className="font-medium text-sm">{currentUser.name}</span>
+              <span className="font-medium text-sm">{currentUser.username}</span>
               <span className="text-xs opacity-75">{currentUser.role}</span>
             </div>
           </>

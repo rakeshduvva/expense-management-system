@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { currentUser } from "@/lib/data";
+import { getCurrentUser, updateUser } from "@/lib/auth";
 
 const profileFormSchema = z.object({
   username: z.string().min(2).max(30),
@@ -39,19 +39,41 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 const ProfileSettings = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      profileForm.reset({
+        username: user.username,
+        email: user.email,
+        bio: "Senior software engineer and team lead", // Default bio
+        department: user.department || "Engineering",
+      });
+    }
+  }, []);
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      username: currentUser.name,
-      email: currentUser.email,
-      bio: "Senior software engineer and team lead",
-      department: currentUser.department,
+      username: "",
+      email: "",
+      bio: "",
+      department: "",
     },
   });
 
   function onProfileSubmit(data: ProfileFormValues) {
     setIsLoading(true);
+    
+    if (currentUser) {
+      updateUser(currentUser.id, {
+        username: data.username,
+        email: data.email,
+        department: data.department,
+      });
+    }
     
     setTimeout(() => {
       setIsLoading(false);
@@ -60,9 +82,11 @@ const ProfileSettings = () => {
         title: "Profile updated",
         description: "Your profile information has been updated.",
       });
-      
-      console.log(data);
     }, 1000);
+  }
+
+  if (!currentUser) {
+    return <div>Loading profile...</div>;
   }
 
   return (
@@ -76,8 +100,7 @@ const ProfileSettings = () => {
       <CardContent>
         <div className="flex items-center gap-4 mb-6">
           <Avatar className="h-16 w-16">
-            <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
-            <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+            <AvatarFallback>{currentUser.username.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
             <Button size="sm" variant="outline">Change Avatar</Button>
